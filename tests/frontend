@@ -1,0 +1,147 @@
+# CodeCraft AI - Frontend Tests
+
+## Overview
+
+This directory contains tests for the CodeCraft AI frontend application.
+
+## Setup
+
+```bash
+# Install test dependencies
+npm install --save-dev @testing-library/react @testing-library/jest-dom @testing-library/user-event jest
+
+# Run tests
+npm test
+
+# Run tests with coverage
+npm test -- --coverage
+```
+
+Test Structure
+
+```
+tests/frontend/
+├── components/          # Component tests
+│   ├── CodeEditor.test.jsx
+│   ├── FeedbackDisplay.test.jsx
+│   └── ReviewHistory.test.jsx
+├── pages/              # Page tests
+│   ├── login.test.jsx
+│   ├── signup.test.jsx
+│   └── dashboard.test.jsx
+├── services/           # Service tests
+│   ├── apiClient.test.js
+│   └── reviewService.test.js
+└── utils/              # Utility tests
+    ├── constants.test.js
+    └── validators.test.js
+```
+
+Writing Tests
+
+Component Test Example
+
+```jsx
+import { render, screen, fireEvent } from '@testing-library/react'
+import CodeEditor from '../../src/components/CodeEditor'
+
+describe('CodeEditor', () => {
+  test('renders with default code', () => {
+    render(<CodeEditor code="console.log('test')" onChange={() => {}} />)
+    expect(screen.getByText(/console.log/)).toBeInTheDocument()
+  })
+})
+```
+
+Service Test Example
+
+```js
+import { reviewService } from '../../src/services/reviewService'
+import apiClient from '../../src/services/apiClient'
+
+jest.mock('../../src/services/apiClient')
+
+describe('reviewService', () => {
+  test('submitReview sends correct request', async () => {
+    const mockData = { code: 'test', language: 'javascript' }
+    apiClient.post.mockResolvedValue({ data: { id: '123' } })
+    
+    const result = await reviewService.submitReview('test', 'javascript')
+    expect(apiClient.post).toHaveBeenCalledWith('/reviews/', mockData)
+    expect(result).toEqual({ id: '123' })
+  })
+})
+```
+
+Running Tests in CI
+
+```yaml
+# GitHub Actions example- name: Run frontend tests
+  run: |
+    cd frontend
+    npm install
+    npm test -- --ci --coverage
+```
+
+Common Test Patterns
+
+Testing Authentication
+
+```jsx
+import { AuthProvider } from '../../src/context/AuthContext'
+
+const renderWithAuth = (ui) => {
+  return render(<AuthProvider>{ui}</AuthProvider>)
+}
+```
+
+Testing API Calls
+
+```jsx
+import { render, waitFor } from '@testing-library/react'
+import { reviewService } from '../../src/services/reviewService'
+
+jest.mock('../../src/services/reviewService')
+
+test('loads reviews', async () => {
+  reviewService.getHistory.mockResolvedValue([{ id: '1' }])
+  render(<ReviewList />)
+  await waitFor(() => {
+    expect(screen.getByText('Review 1')).toBeInTheDocument()
+  })
+})
+```
+
+Coverage Requirements
+
+· Statements: 80%
+· Branches: 70%
+· Functions: 80%
+· Lines: 80%
+
+Continuous Integration
+
+Tests run automatically on:
+
+· Pull requests to main
+· Push to develop branch
+· Nightly builds
+
+Debugging Tests
+
+```bash
+# Run in debug mode
+node --inspect-brk node_modules/.bin/jest --runInBand
+
+# Show verbose output
+npm test -- --verbose
+
+# Run specific test file
+npm test -- CodeEditor.test.jsx
+```
+
+---
+
+Developer: Abdulrahman Adeeyo
+Hackathon: Prometheus July AI Challenge
+Repository: https://github.com/abdulboyprogramming-arch/codecraft-ai.git
