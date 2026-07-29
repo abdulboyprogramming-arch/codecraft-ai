@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import logging
+import uuid
 
 from ..core.database import get_db
 from ..core.auth import get_current_user
@@ -174,8 +175,9 @@ async def get_review(
         HTTPException: If review not found or not owned by user
     """
     try:
+        review_uuid = uuid.UUID(review_id)
         review = db.query(Review).filter(
-            Review.id == review_id,
+            Review.id == review_uuid,
             Review.user_id == current_user.id,
         ).first()
         
@@ -221,8 +223,9 @@ async def delete_review(
         HTTPException: If review not found or not owned by user
     """
     try:
+        review_uuid = uuid.UUID(review_id)
         review = db.query(Review).filter(
-            Review.id == review_id,
+            Review.id == review_uuid,
             Review.user_id == current_user.id,
         ).first()
         

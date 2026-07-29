@@ -1,0 +1,97 @@
+# Added by ggshield
+.cache_ggshield
+.kilo
+
+# ============================================
+# Python (Backend)
+# ============================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+pythonenv*
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+*.log
+*.db
+*.sqlite
+*.sqlite3
+
+# ============================================
+# Node.js / JavaScript (Frontend)
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+*.tsbuildinfo
+.next/
+out/
+dist/
+build/
+.vercel
+.turbo/
+
+# ============================================
+# Environment Variables (Sensitive Data)
+# ============================================
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+*.env
+*.env.*
+!.env.example
+!.env.local.example
+
+# ============================================
+# IDE / Editor
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.iml
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# ============================================
+# Testing
+# ============================================
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+*.cover
+coverage.xml
+*.log
+test.db
+test.sqlite
+test.sqlite3

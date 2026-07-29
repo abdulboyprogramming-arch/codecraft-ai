@@ -13,10 +13,15 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from ..app.main import app
-from ..app.core.database import Base, get_db
-from ..app.models.user import User
-from ..app.core.security import hash_password
+# Updated imports - now referencing from the correct path
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
+from backend.app.main import app
+from backend.app.core.database import Base, get_db
+from backend.app.models.user import User
+from backend.app.core.security import hash_password
 
 # ============================================
 # Test Database Setup
@@ -166,4 +171,3 @@ class TestAuth:
         response = client.get("/api/auth/me")
         assert response.status_code == 401
         assert "Not authenticated" in response.text
-

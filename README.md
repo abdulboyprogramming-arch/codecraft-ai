@@ -61,6 +61,7 @@ CodeCraft AI acts as your personal Senior Software Engineer, providing:
 ## 🏗️ Technology Stack
 
 ### Backend
+
 | Technology | Version | Purpose |
 |------------|---------|---------|
 | Python | 3.10+ | Core language |
@@ -71,6 +72,7 @@ CodeCraft AI acts as your personal Senior Software Engineer, providing:
 | JWT | - | Authentication |
 
 ### Frontend
+
 | Technology | Version | Purpose |
 |------------|---------|---------|
 | Next.js | 14.0.4 | React framework |
@@ -79,6 +81,7 @@ CodeCraft AI acts as your personal Senior Software Engineer, providing:
 | react-simple-code-editor | 0.13.1 | Code editor |
 
 ### Infrastructure
+
 | Technology | Purpose |
 |------------|---------|
 | Docker | Containerization |
@@ -91,6 +94,7 @@ CodeCraft AI acts as your personal Senior Software Engineer, providing:
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Docker and Docker Compose
 - Node.js 18+ (for manual setup)
 - Python 3.10+ (for manual setup)
@@ -117,9 +121,13 @@ docker-compose up -d
 # Frontend: http://localhost:3000
 # Backend API: http://localhost:8000
 # API Docs: http://localhost:8000/docs
-Option 2: Manual Setup
-Backend Setup
-bash
+```
+
+### Option 2: Manual Setup
+
+#### Backend Setup
+
+```bash
 cd backend
 
 # Create virtual environment
@@ -138,8 +146,11 @@ alembic upgrade head
 
 # Start the server
 uvicorn app.main:app --reload
-Frontend Setup
-bash
+```
+
+#### Frontend Setup
+
+```bash
 cd frontend
 
 # Install dependencies
@@ -150,8 +161,13 @@ cp .env.local.example .env.local
 
 # Start development server
 npm run dev
-📁 Project Structure
-text
+```
+
+---
+
+## 📁 Project Structure
+
+```
 codecraft-ai/
 ├── backend/
 │   ├── app/
@@ -182,90 +198,120 @@ codecraft-ai/
 ├── scripts/               # Utility scripts
 ├── docker-compose.yml
 └── README.md
-📚 API Documentation
+```
+
+---
+
+## 📚 API Documentation
+
 Once the backend is running, visit:
 
-Swagger UI: http://localhost:8000/docs
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
 
-ReDoc: http://localhost:8000/redoc
+### Key Endpoints
 
-Key Endpoints
-Method	Endpoint	Description
-POST	/api/auth/signup	Create a new account
-POST	/api/auth/login	Login and get JWT token
-POST	/api/reviews	Submit code for review
-GET	/api/reviews/history	Get review history
-GET	/api/reviews/{id}	Get specific review
-🧪 Testing
-Backend Tests
-bash
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/signup` | Create a new account |
+| POST | `/api/auth/login` | Login and get JWT token |
+| POST | `/api/reviews` | Submit code for review |
+| GET | `/api/reviews/history` | Get review history |
+| GET | `/api/reviews/{id}` | Get specific review |
+
+---
+
+## 🧪 Testing
+
+### Backend Tests
+
+```bash
 cd backend
 pytest
-Frontend Tests
-bash
+```
+
+### Frontend Tests
+
+```bash
 cd frontend
 npm test
-��� Deployment
-Deploy to Render.com
-Backend: Create a new Web Service
+```
 
-Build Command: pip install -r requirements.txt
+---
 
-Start Command: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+## 🚀 Deployment
 
-Environment Variables: DATABASE_URL, OPENAI_API_KEY, SECRET_KEY
+### Deploy to Render.com
 
-Frontend: Create a new Static Site
+**Backend**: Create a new Web Service
 
-Build Command: npm run build
+- Build Command: `pip install -r requirements.txt`
+- Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- Environment Variables: `DATABASE_URL`, `OPENAI_API_KEY`, `SECRET_KEY`
 
-Publish Directory: .next
+**Frontend**: Create a new Static Site
 
-Database: Use Render's PostgreSQL service
+- Build Command: `npm run build`
+- Publish Directory: `.next`
+- Database: Use Render's PostgreSQL service
 
-For detailed deployment instructions, see docs/DEPLOYMENT.md.
+For detailed deployment instructions, see [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md).
 
-🤝 Contributing
+---
+
+## 🤝 Contributing
+
 Contributions are welcome! Please read our contributing guidelines before submitting a pull request.
 
-Fork the repository
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-Create your feature branch (git checkout -b feature/AmazingFeature)
+---
 
-Commit your changes (git commit -m 'Add some AmazingFeature')
+## 📄 License
 
-Push to the branch (git push origin feature/AmazingFeature)
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 
-Open a Pull Request
+---
 
-📄 License
-This project is licensed under the MIT License - see the LICENSE file for details.
+## 🙏 Acknowledgments
 
-🙏 Acknowledgments
-OpenAI for their incredible APIs
+- OpenAI for their incredible APIs
+- The FastAPI and Next.js communities
+- All hackathon participants and judges
+- Special thanks to the Prometheus July AI Challenge organizers
 
-The FastAPI and Next.js communities
+---
 
-All hackathon participants and judges
+## 📞 Support
 
-Special thanks to the Prometheus July AI Challenge organizers
+- **Issues**: [GitHub Issues](https://github.com/abdulboyprogramming-arch/codecraft-ai/issues)
+- **Email**: support@codecraft-ai.com
+- **Documentation**: [docs/](./docs/)
 
-📞 Support
-Issues: GitHub Issues
+---
 
-Email: support@codecraft-ai.com
+## 🏆 Hackathon Submission
 
-Documentation: docs/
+This project was built for the **Prometheus July AI Challenge** (Deadline: July 31, 2026).
 
-🏆 Hackathon Submission
-This project was built for the Prometheus July AI Challenge (Deadline: July 31, 2026).
+### Submission Checklist
 
-Submission Checklist
-☑ Working prototype
-☑ 2-minute demo video
-☑ Source code (GitHub)
-☑ Documentation
-☑ Deployment link
+- [x] Working prototype
+- [x] 2-minute demo video
+- [x] Source code (GitHub)
+- [x] Documentation
+- [x] Deployment link
+
+---
+
+<div align="center">
+
 Built with ❤️ by Abdulrahman Adeeyo for the Prometheus July AI Challenge
 
-<div align="center"> <sub>Copyright © <span id="year"></span> CodeCraft AI. All Rights Reserved.</sub> </div><script> document.getElementById('year').textContent = new Date().getFullYear(); </script>
+<sub>Copyright © CodeCraft AI. All Rights Reserved.</sub>
+
+</div>

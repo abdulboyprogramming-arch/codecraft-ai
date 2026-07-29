@@ -19,7 +19,6 @@ class User(Base):
     User model for authentication and user management.
     """
     __tablename__ = "users"
-    __table_args__ = {"schema": "public"}
     
     # ============================================
     # Columns

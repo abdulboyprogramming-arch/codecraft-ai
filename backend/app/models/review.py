@@ -19,7 +19,6 @@ class Review(Base):
     Review model for storing code review history.
     """
     __tablename__ = "reviews"
-    __table_args__ = {"schema": "public"}
     
     # ============================================
     # Columns
@@ -32,7 +31,7 @@ class Review(Base):
     )
     user_id = Column(
         UUID(as_uuid=True),
-        ForeignKey("public.users.id", ondelete="CASCADE"),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )

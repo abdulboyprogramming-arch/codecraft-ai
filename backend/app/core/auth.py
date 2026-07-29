@@ -13,6 +13,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 from sqlalchemy.orm import Session
 from typing import Optional, Dict, Any
+import uuid
 
 from .database import get_db
 from .security import decode_access_token
@@ -77,7 +78,8 @@ async def get_current_user(
     
     # Get user from database
     try:
-        user = db.query(User).filter(User.id == token_data.user_id).first()
+        user_uuid = uuid.UUID(token_data.user_id)
+        user = db.query(User).filter(User.id == user_uuid).first()
         if user is None:
             raise credentials_exception
     except Exception as e:

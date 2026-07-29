@@ -11,7 +11,7 @@ Hackathon: Prometheus July AI Challenge
 import os
 from typing import List, Optional
 from pydantic_settings import BaseSettings
-from pydantic import Field, validator
+from pydantic import Field, field_validator, model_validator
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -102,24 +102,34 @@ class Settings(BaseSettings):
     SMTP_USER: Optional[str] = Field(default=None)
     SMTP_PASSWORD: Optional[str] = Field(default=None)
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True
-        extra = "ignore"
-    
-    @validator("SECRET_KEY", pre=True)
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "case_sensitive": True,
+        "extra": "ignore",
+    }
+
+    @field_validator("SECRET_KEY", mode="before")
+    @classmethod
     def validate_secret_key(cls, v):
         """Validate that SECRET_KEY is set in production."""
         if os.getenv("APP_ENV") == "production" and v == "your-secret-key-change-in-production":
             raise ValueError("SECRET_KEY must be set in production")
         return v
     
-    @validator("OPENAI_API_KEY", pre=True)
+    @field_validator("OPENAI_API_KEY", mode="before")
+    @classmethod
     def validate_openai_key(cls, v):
         """Validate that OPENAI_API_KEY is set."""
         if os.getenv("APP_ENV") == "production" and not v:
             raise ValueError("OPENAI_API_KEY must be set in production")
+        return v
+
+    @field_validator("ALLOWED_HOSTS", "CORS_ORIGINS", "CORS_METHODS", "CORS_HEADERS", "ALLOWED_EXTENSIONS", mode="before")
+    @classmethod
+    def parse_comma_separated_list(cls, v):
+        if isinstance(v, str):
+            return [item.strip() for item in v.split(",") if item.strip()]
         return v
 
 # Create singleton instance

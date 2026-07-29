@@ -14,10 +14,15 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from unittest.mock import patch, AsyncMock
 
-from ..app.main import app
-from ..app.core.database import Base, get_db
-from ..app.models.user import User
-from ..app.core.security import hash_password
+# Updated imports - now referencing from the correct path
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
+from backend.app.main import app
+from backend.app.core.database import Base, get_db
+from backend.app.models.user import User
+from backend.app.core.security import hash_password
 
 # ============================================
 # Test Database Setup
@@ -79,7 +84,7 @@ def auth_token(client):
 class TestReviews:
     """Code review tests."""
     
-    @patch("app.services.ai_service.ai_service.review_code")
+    @patch("backend.app.services.ai_service.ai_service.review_code")
     def test_submit_review_success(self, mock_review, client, auth_token):
         """Test successful code review submission."""
         # Mock AI service response
@@ -146,27 +151,28 @@ class TestReviews:
         )
         assert response.status_code == 422  # Validation error
     
-    def test_get_review_history(self, client, auth_token):
+    @patch("backend.app.services.ai_service.ai_service.review_code")
+    def test_get_review_history(self, mock_review, client, auth_token):
         """Test getting review history."""
-        # Submit a review first
-        with patch("app.services.ai_service.ai_service.review_code") as mock_review:
-            mock_review.return_value = {
-                "logic": [],
-                "efficiency": [],
-                "style": [],
-                "security": [],
-                "summary": "Test",
-                "score": 100,
+        # Mock AI service response
+        mock_review.return_value = {
+            "logic": [],
+            "efficiency": [],
+            "style": [],
+            "security": [],
+            "summary": "Test",
+            "score": 100,
+        }
+        
+        # Submit a review
+        client.post(
+            "/api/reviews/",
+            headers={"Authorization": f"Bearer {auth_token}"},
+            json={
+                "code": "def test(): print('Hello')",
+                "language": "python",
             }
-            
-            client.post(
-                "/api/reviews/",
-                headers={"Authorization": f"Bearer {auth_token}"},
-                json={
-                    "code": "def test(): print('Hello')",
-                    "language": "python",
-                }
-            )
+        )
         
         # Get history
         response = client.get(
@@ -178,28 +184,29 @@ class TestReviews:
         assert isinstance(data, list)
         assert len(data) == 1
     
-    def test_get_review_by_id(self, client, auth_token):
+    @patch("backend.app.services.ai_service.ai_service.review_code")
+    def test_get_review_by_id(self, mock_review, client, auth_token):
         """Test getting a specific review by ID."""
+        # Mock AI service response
+        mock_review.return_value = {
+            "logic": [],
+            "efficiency": [],
+            "style": [],
+            "security": [],
+            "summary": "Test",
+            "score": 100,
+        }
+        
         # Submit a review
-        with patch("app.services.ai_service.ai_service.review_code") as mock_review:
-            mock_review.return_value = {
-                "logic": [],
-                "efficiency": [],
-                "style": [],
-                "security": [],
-                "summary": "Test",
-                "score": 100,
+        response = client.post(
+            "/api/reviews/",
+            headers={"Authorization": f"Bearer {auth_token}"},
+            json={
+                "code": "def test(): print('Hello')",
+                "language": "python",
             }
-            
-            response = client.post(
-                "/api/reviews/",
-                headers={"Authorization": f"Bearer {auth_token}"},
-                json={
-                    "code": "def test(): print('Hello')",
-                    "language": "python",
-                }
-            )
-            review_id = response.json()["id"]
+        )
+        review_id = response.json()["id"]
         
         # Get the review
         response = client.get(
@@ -211,28 +218,29 @@ class TestReviews:
         assert data["id"] == review_id
         assert data["code"] == "def test(): print('Hello')"
     
-    def test_delete_review(self, client, auth_token):
+    @patch("backend.app.services.ai_service.ai_service.review_code")
+    def test_delete_review(self, mock_review, client, auth_token):
         """Test deleting a review."""
+        # Mock AI service response
+        mock_review.return_value = {
+            "logic": [],
+            "efficiency": [],
+            "style": [],
+            "security": [],
+            "summary": "Test",
+            "score": 100,
+        }
+        
         # Submit a review
-        with patch("app.services.ai_service.ai_service.review_code") as mock_review:
-            mock_review.return_value = {
-                "logic": [],
-                "efficiency": [],
-                "style": [],
-                "security": [],
-                "summary": "Test",
-                "score": 100,
+        response = client.post(
+            "/api/reviews/",
+            headers={"Authorization": f"Bearer {auth_token}"},
+            json={
+                "code": "def test(): print('Hello')",
+                "language": "python",
             }
-            
-            response = client.post(
-                "/api/reviews/",
-                headers={"Authorization": f"Bearer {auth_token}"},
-                json={
-                    "code": "def test(): print('Hello')",
-                    "language": "python",
-                }
-            )
-            review_id = response.json()["id"]
+        )
+        review_id = response.json()["id"]
         
         # Delete the review
         response = client.delete(
@@ -247,4 +255,3 @@ class TestReviews:
             headers={"Authorization": f"Bearer {auth_token}"}
         )
         assert response.status_code == 404
-
