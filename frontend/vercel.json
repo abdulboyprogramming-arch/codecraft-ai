@@ -46,11 +46,5 @@
       "destination": "https://codecraft-ai-8i35.onrender.com/api/$1"
     }
   ],
-  "cleanUrls": true,
-  "functions": {
-    "api/**/*.js": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  }
+  "cleanUrls": true
 }
