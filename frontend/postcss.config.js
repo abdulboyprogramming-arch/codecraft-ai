@@ -1,17 +1,13 @@
 module.exports = {
   plugins: {
-    'tailwindcss/nesting': {},
-    tailwindcss: {},
-    autoprefixer: {},
-    ...(process.env.NODE_ENV === 'production' ? {
-      cssnano: {
-        preset: ['default', {
-          discardComments: {
-            removeAll: true,
-          },
-        }],
+    'postcss-preset-env': {
+      stage: 3,
+      features: {
+        'nesting-rules': true,
       },
-    } : {}),
+    },
+    cssnano: process.env.NODE_ENV === 'production' ? {
+      preset: 'default',
+    } : false,
   },
-}
-
+};
