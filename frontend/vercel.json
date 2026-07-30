@@ -10,11 +10,6 @@
       "develop": true
     }
   },
-  "env": {
-    "NEXT_PUBLIC_API_URL": "https://codecraft-ai-backend.onrender.com/api",
-    "NEXT_PUBLIC_APP_NAME": "CodeCraft AI",
-    "NEXT_PUBLIC_APP_VERSION": "0.1.0"
-  },
   "headers": [
     {
       "source": "/(.*)",
