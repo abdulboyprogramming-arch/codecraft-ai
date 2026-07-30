@@ -43,7 +43,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://codecraft-ai-backend.onrender.com/api/$1"
+      "destination": "https://codecraft-ai-8i35.onrender.com/api/$1"
     }
   ],
   "cleanUrls": true,
