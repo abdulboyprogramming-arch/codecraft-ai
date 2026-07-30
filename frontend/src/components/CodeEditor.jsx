@@ -7,40 +7,99 @@
  * Hackathon: Prometheus July AI Challenge
  */
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Editor from 'react-simple-code-editor'
-import { highlight, languages } from 'prismjs/components/prism-core'
-import 'prismjs/components/prism-clike'
-import 'prismjs/components/prism-javascript'
-import 'prismjs/components/prism-python'
-import 'prismjs/components/prism-java'
-import 'prismjs/components/prism-cpp'
-import 'prismjs/components/prism-typescript'
-import 'prismjs/components/prism-go'
-import 'prismjs/components/prism-rust'
-import 'prismjs/themes/prism.css'
 
 const CodeEditor = ({ code, onChange, language }) => {
-  // Map language to Prism language
-  const getLanguage = (lang) => {
-    const map = {
-      javascript: languages.javascript,
-      python: languages.python,
-      java: languages.java,
-      cpp: languages.cpp,
-      typescript: languages.typescript,
-      go: languages.go,
-      rust: languages.rust,
+  const [isClient, setIsClient] = useState(false)
+  const [highlightedCode, setHighlightedCode] = useState(code)
+
+  // Load Prism.js ONLY on the client side
+  useEffect(() => {
+    setIsClient(true)
+    
+    const loadAndHighlight = async () => {
+      try {
+        // Dynamic import of Prism.js
+        const Prism = (await import('prismjs')).default
+        
+        // Import CSS
+        await import('prismjs/themes/prism.css')
+        
+        // Import all languages you support
+        await import('prismjs/components/prism-clike')
+        await import('prismjs/components/prism-javascript')
+        await import('prismjs/components/prism-python')
+        await import('prismjs/components/prism-java')
+        await import('prismjs/components/prism-cpp')
+        await import('prismjs/components/prism-typescript')
+        await import('prismjs/components/prism-go')
+        await import('prismjs/components/prism-rust')
+        
+        // Map language to Prism language
+        const languageMap = {
+          javascript: Prism.languages.javascript,
+          python: Prism.languages.python,
+          java: Prism.languages.java,
+          cpp: Prism.languages.cpp,
+          typescript: Prism.languages.typescript,
+          go: Prism.languages.go,
+          rust: Prism.languages.rust,
+        }
+        
+        const prismLanguage = languageMap[language] || Prism.languages.javascript
+        const langName = language || 'javascript'
+        
+        // Highlight the code
+        try {
+          const highlighted = Prism.highlight(
+            code || '',
+            prismLanguage,
+            langName
+          )
+          setHighlightedCode(highlighted)
+        } catch (error) {
+          console.warn('Failed to highlight code:', error)
+          setHighlightedCode(code || '')
+        }
+      } catch (error) {
+        console.warn('Failed to load Prism.js:', error)
+        setHighlightedCode(code || '')
+      }
     }
-    return map[lang] || languages.javascript
+    
+    loadAndHighlight()
+  }, [code, language]) // Re-run when code or language changes
+
+  // During SSR or before Prism loads, show a simple textarea
+  if (!isClient) {
+    return (
+      <div className="border rounded-md overflow-hidden bg-gray-50">
+        <Editor
+          value={code}
+          onValueChange={onChange}
+          highlight={(code) => code}
+          padding={16}
+          className="font-mono text-sm min-h-[300px] focus:outline-none"
+          style={{
+            backgroundColor: '#f8f9fa',
+            fontFamily: '"Fira Code", "Fira Mono", monospace',
+            fontSize: 14,
+            lineHeight: 1.6,
+            minHeight: '300px',
+          }}
+        />
+      </div>
+    )
   }
 
+  // Client-side rendering with syntax highlighting
   return (
     <div className="border rounded-md overflow-hidden bg-gray-50">
       <Editor
         value={code}
         onValueChange={onChange}
-        highlight={(code) => highlight(code, getLanguage(language), language)}
+        highlight={() => highlightedCode}
         padding={16}
         className="font-mono text-sm min-h-[300px] focus:outline-none"
         style={{
