@@ -49,19 +49,44 @@ apiClient.interceptors.request.use(
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     // Handle authentication errors
     if (error.response?.status === 401) {
-      // Clear token and redirect to login
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token')
-        delete apiClient.defaults.headers.common['Authorization']
-        
-        // Don't redirect if already on login page
-        const currentPath = window.location.pathname
-        if (!currentPath.includes('/login') && !currentPath.includes('/signup')) {
-          toast.error('Session expired. Please login again.')
-          window.location.href = '/login'
+      const originalRequest = error.config
+      if (originalRequest._retry) {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('token')
+          localStorage.removeItem('refresh_token')
+          delete apiClient.defaults.headers.common['Authorization']
+          const currentPath = window.location.pathname
+          if (!currentPath.includes('/login') && !currentPath.includes('/signup')) {
+            toast.error('Session expired. Please login again.')
+            window.location.href = '/login'
+          }
+        }
+        return Promise.reject(error)
+      }
+      originalRequest._retry = true
+      try {
+        const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refresh_token') : null
+        if (refreshToken) {
+          const { data } = await axios.post('/auth/refresh', { refresh_token: refreshToken })
+          const { access_token, refresh_token } = data
+          localStorage.setItem('token', access_token)
+          localStorage.setItem('refresh_token', refresh_token)
+          apiClient.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
+          return apiClient(originalRequest)
+        }
+      } catch {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('token')
+          localStorage.removeItem('refresh_token')
+          delete apiClient.defaults.headers.common['Authorization']
+          const currentPath = window.location.pathname
+          if (!currentPath.includes('/login') && !currentPath.includes('/signup')) {
+            toast.error('Session expired. Please login again.')
+            window.location.href = '/login'
+          }
         }
       }
     }

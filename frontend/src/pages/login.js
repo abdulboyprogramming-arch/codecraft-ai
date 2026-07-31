@@ -12,13 +12,14 @@ import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
+import OAuthButtons from '../components/OAuthButtons'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const { login, loginWithOAuth } = useAuth()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -43,6 +44,8 @@ export default function Login() {
 
           {/* Login Form */}
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+            <OAuthButtons onOAuthLogin={loginWithOAuth} />
+
             <div className="space-y-4">
               {/* Email Field */}
               <div>

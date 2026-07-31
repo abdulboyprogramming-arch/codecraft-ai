@@ -9,9 +9,10 @@ Hackathon: Prometheus July AI Challenge
 """
 
 from sqlalchemy import create_engine, MetaData
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import QueuePool
+from sqlalchemy.exc import SQLAlchemyError
 from typing import Generator
 import logging
 
@@ -62,7 +63,7 @@ def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
         yield db
-    except Exception as e:
+    except SQLAlchemyError as e:
         logger.error(f"Database error: {e}")
         db.rollback()
         raise

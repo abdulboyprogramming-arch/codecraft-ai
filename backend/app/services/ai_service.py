@@ -61,6 +61,28 @@ Provide your feedback as a JSON object with this structure:
 Be thorough but concise. Focus on issues that matter. If the code is good, say so.
 """
 
+IMPROVE_SYSTEM_PROMPT = """You are CodeCraft AI, a Senior Software Engineer expert at refactoring and improving code while preserving behavior.
+
+Your task is to improve the provided code based on the focus area. Return a JSON object with:
+- improved_code: the complete improved code
+- explanation: brief explanation of what changed and why
+- changes_summary: array of changes with fields: file, line (optional), change_type (added/removed/modified/refactored), description, impact (low/medium/high)
+
+Focus areas:
+- readability: simplify logic, improve names, add comments, reduce nesting
+- performance: optimize algorithms, reduce redundancy, improve data structures
+- security: fix vulnerabilities, sanitize inputs, use safe defaults
+- maintainability: reduce duplication, improve modularity, follow patterns
+- all: comprehensive improvement across all dimensions
+
+Rules:
+- Preserve original behavior unless explicitly fixing a bug
+- Keep the same language and conventions as the original
+- Do not add external dependencies
+- If the code is already excellent, return it with minimal changes and explain why
+- Always return valid JSON
+"""
+
 class AIService:
     """
     Service for interacting with OpenAI's API for code review.
@@ -163,7 +185,7 @@ class AIService:
                 try:
                     data = json.loads(json_match.group(1))
                     return self._parse_response(json.dumps(data))
-                except:
+                except Exception:
                     pass
             
             # Return a fallback response
@@ -233,11 +255,7 @@ class AIService:
             
             return feedback
             
-        except OpenAIError as e:
-            logger.error(f"OpenAI API error: {e}")
-            raise
-            
-        except Exception as e:
+        except (OpenAIError, json.JSONDecodeError, Exception) as e:
             logger.error(f"Unexpected error in AI service: {e}")
             return {
                 "logic": [{
@@ -249,6 +267,79 @@ class AIService:
                 "security": [],
                 "summary": "An unexpected error occurred during code review.",
                 "score": None,
+            }
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        reraise=True,
+    )
+    async def improve_code(
+        self,
+        code: str,
+        language: Optional[str] = None,
+        focus_area: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Improve code using OpenAI's API.
+        
+        Args:
+            code: The source code to improve
+            language: Optional programming language
+            focus_area: Optional focus area for improvements
+            
+        Returns:
+            Dict[str, Any]: Improved code, explanation, and changes summary
+            
+        Raises:
+            OpenAIError: If the API call fails
+        """
+        try:
+            truncated_code = self._truncate_code(code)
+            lang_info = f"Language: {language}\n" if language else ""
+            focus_info = f"Focus area: {focus_area}\n" if focus_area else ""
+            
+            user_prompt = f"""{lang_info}{focus_info}Improve the following code and return valid JSON:
+
+```{truncated_code}
+```"""
+            
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": IMPROVE_SYSTEM_PROMPT},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                response_format={"type": "json_object"},
+            )
+            
+            response_text = response.choices[0].message.content
+            result = json.loads(response_text)
+            
+            # Validate required fields
+            if "improved_code" not in result:
+                result["improved_code"] = code
+            if "explanation" not in result:
+                result["explanation"] = "No improvements were necessary."
+            if "changes_summary" not in result:
+                result["changes_summary"] = []
+            
+            logger.info(
+                f"Code improvement successful: "
+                f"changes={len(result.get('changes_summary', []))}, "
+                f"focus={focus_area or 'all'}"
+            )
+            
+            return result
+            
+        except (OpenAIError, json.JSONDecodeError, Exception) as e:
+            logger.error(f"Unexpected error in AI improve service: {e}")
+            return {
+                "improved_code": code,
+                "explanation": f"An error occurred during improvement: {str(e)[:100]}",
+                "changes_summary": [],
             }
     
     async def get_code_metrics(self, code: str, language: str) -> Dict[str, Any]:

@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     # ============================================
     HOST: str = Field(default="0.0.0.0")
     PORT: int = Field(default=8000)
-    ALLOWED_HOSTS: List[str] = Field(default=["*"])
+    ALLOWED_HOSTS: List[str] = Field(default=["localhost", "127.0.0.1"])
     
     # ============================================
     # Database Settings
@@ -101,6 +101,16 @@ class Settings(BaseSettings):
     SMTP_PORT: Optional[int] = Field(default=None)
     SMTP_USER: Optional[str] = Field(default=None)
     SMTP_PASSWORD: Optional[str] = Field(default=None)
+    
+    # ============================================
+    # OAuth2 Settings
+    # ============================================
+    GOOGLE_CLIENT_ID: Optional[str] = Field(default=None)
+    GOOGLE_CLIENT_SECRET: Optional[str] = Field(default=None)
+    GITHUB_CLIENT_ID: Optional[str] = Field(default=None)
+    GITHUB_CLIENT_SECRET: Optional[str] = Field(default=None)
+    FRONTEND_URL: str = Field(default="http://localhost:3000")
+    BACKEND_URL: str = Field(default="http://localhost:8000")
     
     model_config = {
         "env_file": ".env",

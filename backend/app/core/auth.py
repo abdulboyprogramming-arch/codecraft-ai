@@ -132,17 +132,6 @@ async def get_current_user_optional(
     except HTTPException:
         return None
 
-# ============================================
-# Legacy Support
-# ============================================
-def get_current_user_dependency(*args, **kwargs):
-    """
-    Legacy wrapper for get_current_user.
-    
-    Returns:
-        Function: get_current_user function
-    """
-    return get_current_user
 
 # ============================================
 # Export
@@ -152,6 +141,5 @@ __all__ = [
     "get_current_user",
     "get_current_active_user",
     "get_current_user_optional",
-    "get_current_user_dependency",
 ]
 

@@ -126,6 +126,56 @@ class ReviewStatsResponse(BaseModel):
     most_common_issues: Dict[str, int] = Field(default_factory=dict, description="Most common issue types")
 
 # ============================================
+# Code Improvement Schemas
+# ============================================
+
+class CodeImprovementRequest(BaseModel):
+    """Schema for requesting code improvement."""
+    code: str = Field(..., description="The source code to improve", max_length=50000)
+    language: Optional[str] = Field(None, description="Programming language")
+    focus_area: Optional[str] = Field(None, description="Focus area: readability, performance, security, all")
+    save: bool = Field(False, description="Whether to save this improvement to history")
+
+    @validator("code")
+    def validate_code(cls, v):
+        if not v or not v.strip():
+            raise ValueError("Code cannot be empty")
+        if len(v) > 50000:
+            raise ValueError("Code exceeds maximum length of 50,000 characters")
+        return v
+
+    @validator("focus_area")
+    def validate_focus_area(cls, v):
+        if v is not None:
+            valid_areas = ["readability", "performance", "security", "all", "maintainability", "python", "javascript"]
+            if v.lower() not in valid_areas:
+                raise ValueError(f"Focus area must be one of: {', '.join(valid_areas)}")
+            return v.lower()
+        return v
+
+class ChangeSummaryItem(BaseModel):
+    """Schema for a single change in the improvement."""
+    file: str = Field("main", description="File or section name")
+    line: Optional[int] = Field(None, description="Line number")
+    change_type: str = Field(..., description="Type: added, removed, modified, refactored")
+    description: str = Field(..., description="Description of the change")
+    impact: str = Field("medium", description="Impact: low, medium, high")
+
+class CodeImprovementResponse(BaseModel):
+    """Schema for code improvement response."""
+    id: str = Field(..., description="Improvement ID")
+    original_code: str = Field(..., description="Original code")
+    improved_code: str = Field(..., description="Improved code")
+    language: Optional[str] = Field(None, description="Programming language")
+    focus_area: Optional[str] = Field(None, description="Focus area used")
+    explanation: Optional[str] = Field(None, description="Explanation of changes")
+    changes_summary: List[ChangeSummaryItem] = Field(default_factory=list, description="Summary of changes")
+    created_at: datetime = Field(..., description="Creation timestamp")
+
+    class Config:
+        from_attributes = True
+
+# ============================================
 # Export
 # ============================================
 __all__ = [
@@ -135,5 +185,8 @@ __all__ = [
     "ReviewResponse",
     "ReviewHistoryResponse",
     "ReviewStatsResponse",
+    "CodeImprovementRequest",
+    "CodeImprovementResponse",
+    "ChangeSummaryItem",
 ]
 

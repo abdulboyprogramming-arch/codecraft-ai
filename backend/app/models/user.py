@@ -79,7 +79,13 @@ class User(Base):
         "Review",
         back_populates="user",
         cascade="all, delete-orphan",
-        lazy="dynamic",
+        lazy="selectin",
+    )
+    improvements = relationship(
+        "CodeImprovement",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
     
     # ============================================

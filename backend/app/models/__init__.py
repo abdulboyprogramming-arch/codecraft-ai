@@ -10,6 +10,7 @@ Hackathon: Prometheus July AI Challenge
 
 from .user import User
 from .review import Review
+from .improvement import CodeImprovement
 
-__all__ = ["User", "Review"]
+__all__ = ["User", "Review", "CodeImprovement"]
 

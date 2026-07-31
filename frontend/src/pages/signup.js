@@ -12,18 +12,29 @@ import Link from 'next/link'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
+import OAuthButtons from '../components/OAuthButtons'
 
 export default function Signup() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [fullName, setFullName] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const { signup } = useAuth()
+  const [error, setError] = useState('')
+  const { signup, loginWithOAuth } = useAuth()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setError('')
+    
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      setLoading(false)
+      return
+    }
+    
     await signup(email, password, fullName)
     setLoading(false)
   }
@@ -44,6 +55,8 @@ export default function Signup() {
 
           {/* Signup Form */}
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+            <OAuthButtons onOAuthLogin={loginWithOAuth} />
+
             <div className="space-y-4">
               {/* Full Name Field */}
               <div>
@@ -127,6 +140,32 @@ export default function Signup() {
                 <p className="mt-1 text-xs text-gray-500">
                   Must be at least 8 characters with uppercase, lowercase, and a number
                 </p>
+              </div>
+
+              {/* Confirm Password Field */}
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                  Confirm Password
+                </label>
+                <div className="mt-1 relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    required
+                    className="input-field pl-10"
+                    placeholder="Repeat your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+                {error && (
+                  <p className="mt-1 text-xs text-red-600">{error}</p>
+                )}
               </div>
             </div>
 

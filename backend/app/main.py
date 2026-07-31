@@ -11,11 +11,12 @@ Hackathon: Prometheus July AI Challenge
 
 import logging
 from contextlib import asynccontextmanager
+from datetime import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from .core.config import settings
-from .core.database import engine, Base
+from .core.database import engine, Base, init_db
 from .api import auth, reviews
 from .utils.logger import setup_logging
 
@@ -34,18 +35,21 @@ async def lifespan(app: FastAPI):
     Lifespan context manager for startup and shutdown events.
     """
     # Startup
-    logger.info("🚀 Starting CodeCraft AI API...")
-    logger.info(f"📦 Environment: {settings.APP_ENV}")
-    logger.info(f"📦 Version: {settings.APP_VERSION}")
+    logger.info("Starting CodeCraft AI API...")
+    logger.info(f"Environment: {settings.APP_ENV}")
+    logger.info(f"Version: {settings.APP_VERSION}")
     
-    # Create database tables
-    Base.metadata.create_all(bind=engine)
-    logger.info("✅ Database tables created/verified")
+    if settings.APP_ENV != "production":
+        try:
+            init_db()
+            logger.info("Database tables initialized")
+        except Exception as e:
+            logger.error(f"Database initialization warning: {e}")
     
     yield
     
     # Shutdown
-    logger.info("🛑 Shutting down CodeCraft AI API...")
+    logger.info("Shutting down CodeCraft AI API...")
 
 # ============================================
 # Create FastAPI Application
@@ -66,7 +70,7 @@ app = FastAPI(
 # Trusted Hosts
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=settings.ALLOWED_HOSTS or ["*"],
+    allowed_hosts=settings.ALLOWED_HOSTS if settings.APP_ENV == "production" else ["*"],
 )
 
 # CORS
@@ -74,8 +78,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS or ["http://localhost:3000"],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
 )
 
 # ============================================
@@ -102,7 +106,7 @@ async def health_check():
     """
     return {
         "status": "healthy",
-        "timestamp": __import__("datetime").datetime.utcnow().isoformat(),
+        "timestamp": datetime.utcnow().isoformat(),
     }
 
 # Include routers

@@ -84,6 +84,67 @@ export const reviewService = {
       throw error
     }
   },
+
+  /**
+   * Improve code with AI refactoring
+   */
+  async improveCode(code, language = null, focusArea = null) {
+    try {
+      const response = await apiClient.post('/reviews/improve', {
+        code,
+        language,
+        focus_area: focusArea,
+        save: true,
+      })
+      return response.data
+    } catch (error) {
+      console.error('Failed to improve code:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Detect programming language from code
+   */
+  async detectLanguage(code) {
+    try {
+      const response = await apiClient.post('/reviews/detect-language', { code })
+      return response.data
+    } catch (error) {
+      console.error('Failed to detect language:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Export review as markdown
+   */
+  async exportReview(reviewId) {
+    try {
+      const response = await apiClient.get(`/reviews/${reviewId}/export`, {
+        responseType: 'text',
+      })
+      return response.data
+    } catch (error) {
+      console.error('Failed to export review:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Export improvement as markdown
+   */
+  async exportImprovement(improvementId) {
+    try {
+      const response = await apiClient.get(`/improvements/${improvementId}/export`, {
+        responseType: 'text',
+      })
+      return response.data
+    } catch (error) {
+      console.error('Failed to export improvement:', error)
+      throw error
+    }
+  },
 }
 
 // ============================================

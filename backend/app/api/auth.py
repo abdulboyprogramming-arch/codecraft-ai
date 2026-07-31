@@ -8,12 +8,15 @@ Developer: Abdulrahman Adeeyo
 Hackathon: Prometheus July AI Challenge
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from typing import Optional
+from datetime import datetime, timezone
 import logging
 
 from ..core.database import get_db
+from ..core.config import settings
 from ..core.security import (
     hash_password,
     verify_password,
@@ -22,6 +25,7 @@ from ..core.security import (
     decode_access_token,
 )
 from ..core.auth import get_current_user
+from ..core.oauth import OAuthClient
 from ..models.user import User
 from ..schemas.auth import (
     UserCreate,
@@ -128,7 +132,7 @@ async def login(
         )
     
     # Update last login
-    user.last_login = __import__("datetime").datetime.utcnow()
+    user.last_login = datetime.now(timezone.utc)
     db.commit()
     
     # Create tokens
@@ -344,8 +348,134 @@ async def logout(
     
     Args:
         current_user: Current authenticated user
+        
     """
-    # Client should remove tokens
-    # Server-side token blacklisting can be implemented with Redis
+    logger.info(f"User logged out: {current_user.email}")
     return {"message": "Logged out successfully"}
+
+# ============================================
+# OAuth2 Authentication
+# ============================================
+GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
+GITHUB_AUTH_URL = "https://github.com/login/oauth/authorize"
+
+@router.get("/oauth/{provider}")
+async def oauth_login(provider: str):
+    """
+    Redirect user to OAuth provider for authentication.
+    
+    Args:
+        provider: OAuth provider name (google or github)
+        
+    Returns:
+        RedirectResponse: Redirect to OAuth provider
+        
+    Raises:
+        HTTPException: If provider is not supported
+    """
+    if provider not in ["google", "github"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unsupported OAuth provider",
+        )
+
+    if provider == "google":
+        params = {
+            "client_id": settings.GOOGLE_CLIENT_ID,
+            "redirect_uri": f"{settings.BACKEND_URL}/api/auth/oauth/google/callback",
+            "response_type": "code",
+            "scope": "openid email profile",
+            "access_type": "offline",
+            "prompt": "consent",
+        }
+        auth_url = GOOGLE_AUTH_URL + "?" + "&".join(
+            f"{k}={v}" for k, v in params.items()
+        )
+    else:
+        params = {
+            "client_id": settings.GITHUB_CLIENT_ID,
+            "redirect_uri": f"{settings.BACKEND_URL}/api/auth/oauth/github/callback",
+            "scope": "user:email",
+        }
+        auth_url = GITHUB_AUTH_URL + "?" + "&".join(
+            f"{k}={v}" for k, v in params.items()
+        )
+
+    logger.info(f"OAuth login initiated for provider: {provider}")
+    return RedirectResponse(url=auth_url)
+
+
+@router.get("/oauth/{provider}/callback")
+async def oauth_callback(
+    provider: str,
+    code: str = Query(...),
+    db: Session = Depends(get_db),
+):
+    """
+    Handle OAuth provider callback, create/login user, and redirect with JWT.
+    
+    Args:
+        provider: OAuth provider name (google or github)
+        code: Authorization code from OAuth provider
+        db: Database session
+        
+    Returns:
+        RedirectResponse: Redirect to frontend with JWT tokens
+        
+    Raises:
+        HTTPException: If OAuth flow fails
+    """
+    if provider not in ["google", "github"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unsupported OAuth provider",
+        )
+
+    # Exchange authorization code for access token
+    redirect_uri = f"{settings.BACKEND_URL}/api/auth/oauth/{provider}/callback"
+    token_data = await OAuthClient.exchange_code_for_token(provider, code, redirect_uri)
+    access_token = token_data.get("access_token")
+
+    if not access_token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No access token received from OAuth provider",
+        )
+
+    # Fetch user info from provider
+    user_info = await OAuthClient.get_user_info(provider, access_token)
+    email = user_info.get("email")
+    full_name = user_info.get("name") or user_info.get("full_name")
+
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email not provided by OAuth provider",
+        )
+
+    # Find or create user
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        user = User(
+            email=email,
+            hashed_password="",
+            full_name=full_name,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        logger.info(f"New OAuth user created: {email} via {provider}")
+    else:
+        user.last_login = datetime.now(timezone.utc)
+        db.commit()
+        db.refresh(user)
+        logger.info(f"OAuth user logged in: {email} via {provider}")
+
+    # Create JWT tokens
+    access_token = create_access_token(data={"sub": str(user.id)})
+    refresh_token = create_refresh_token(data={"sub": str(user.id)})
+
+    # Redirect to frontend with tokens
+    frontend_url = f"{settings.FRONTEND_URL}?access_token={access_token}&refresh_token={refresh_token}"
+    return RedirectResponse(url=frontend_url)
 

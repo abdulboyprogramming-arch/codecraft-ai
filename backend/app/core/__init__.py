@@ -19,7 +19,7 @@ from .security import (
     create_access_token,
     decode_access_token,
 )
-from .auth import get_current_user, get_current_user_dependency
+from .auth import get_current_user
 
 __all__ = [
     "settings",
@@ -31,6 +31,5 @@ __all__ = [
     "create_access_token",
     "decode_access_token",
     "get_current_user",
-    "get_current_user_dependency",
 ]
 

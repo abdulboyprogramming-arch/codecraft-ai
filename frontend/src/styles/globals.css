@@ -27,6 +27,10 @@
     @apply bg-gray-50 text-gray-900;
   }
 
+  html.dark body {
+    @apply bg-dark-bg text-dark-text;
+  }
+
   /* Selection color */
   ::selection {
     @apply bg-primary-200 text-primary-900;
